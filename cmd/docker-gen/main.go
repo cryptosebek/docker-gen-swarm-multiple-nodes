@@ -39,6 +39,7 @@ var (
 	interval              int
 	keepBlankLines        bool
 	endpoint              string
+	swarmNodes            stringslice
 	tlsCert               string
 	tlsKey                string
 	tlsCaCert             string
@@ -93,6 +94,13 @@ func loadConfig(file string) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("Loaded configuration from %s: %+v\n", file, configs)
+	for _, cfg := range configs.Config {
+		log.Printf("Template: %s, Dest: %s, SwarmNodes: %v\n", cfg.Template, cfg.Dest, cfg.SwarmNodes)
+		if len(swarmNodes) == 0 {
+			swarmNodes = stringslice(cfg.SwarmNodes)
+		}
+	}
 	return nil
 }
 
@@ -124,6 +132,7 @@ func initFlags() {
 	flag.IntVar(&interval, "interval", 0, "notify command interval (secs)")
 	flag.BoolVar(&keepBlankLines, "keep-blank-lines", false, "keep blank lines in the output file")
 	flag.StringVar(&endpoint, "endpoint", "", "docker api endpoint (tcp|unix://..). Default unix:///var/run/docker.sock")
+	flag.Var(&swarmNodes, "swarm-node", "swarm node api endpoint (tcp|unix://..).")
 	flag.StringVar(&tlsCert, "tlscert", filepath.Join(certPath, "cert.pem"), "path to TLS client certificate file")
 	flag.StringVar(&tlsKey, "tlskey", filepath.Join(certPath, "key.pem"), "path to TLS client key file")
 	flag.StringVar(&tlsCaCert, "tlscacert", filepath.Join(certPath, "ca.pem"), "path to TLS CA certificate file")
@@ -203,6 +212,7 @@ func main() {
 
 	generator, err := generator.NewGenerator(generator.GeneratorConfig{
 		Endpoint:   endpoint,
+		SwarmNodes: swarmNodes,
 		TLSKey:     tlsKey,
 		TLSCert:    tlsCert,
 		TLSCACert:  tlsCaCert,

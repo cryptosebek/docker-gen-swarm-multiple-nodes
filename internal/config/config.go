@@ -21,6 +21,7 @@ type Config struct {
 	IncludeStopped         bool
 	Interval               int
 	KeepBlankLines         bool
+	SwarmNodes             []string
 }
 
 type ConfigFile struct {
